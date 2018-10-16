@@ -1,0 +1,9 @@
+# This is not a promise.  This just happens to be the version of CMake I use.
+# If you can successfully bump this version down, more power to you.  Also,
+# maybe file an issue stating the version you were able to get it working with?
+cmake_minimum_required(VERSION 3.11.2)
+
+project(libretro-moonlight C)
+
+add_subdirectory(lib)
+add_subdirectory(src)
