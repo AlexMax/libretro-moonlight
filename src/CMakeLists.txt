@@ -1,4 +1,5 @@
-set(MOONLIGHT_SOURCES)
+set(MOONLIGHT_SOURCES
+    libretro.c)
 
-add_library(moonlight_libretro SHARED)
-target_link_libraries(moonlight_libretro moonlight-common-c)
+add_library(moonlight_libretro SHARED ${MOONLIGHT_SOURCES})
+target_link_libraries(moonlight_libretro moonlight-common)
