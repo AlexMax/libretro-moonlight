@@ -2,6 +2,7 @@
  * This file is part of Moonlight Embedded.
  *
  * Copyright (C) 2015-2017 Iwan Timmer
+ * Copyright (C) 2018 Alex Mayfield
  *
  * Moonlight is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -23,6 +24,7 @@
 #include "client.h"
 #include "errors.h"
 #include "limits.h"
+#include "uuid.h"
 
 #include <Limelight.h>
 
@@ -30,7 +32,6 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
-#include <uuid/uuid.h>
 #include <openssl/sha.h>
 #include <openssl/aes.h>
 #include <openssl/rand.h>
@@ -169,7 +170,6 @@ static int load_cert(const char* keyDirectory) {
 
 static int load_server_status(PSERVER_DATA server) {
 
-  uuid_t uuid;
   char uuid_str[37];
 
   int ret;
@@ -185,8 +185,7 @@ static int load_server_status(PSERVER_DATA server) {
 
     ret = GS_INVALID;
 
-    uuid_generate_random(uuid);
-    uuid_unparse(uuid, uuid_str);
+    gs_uuid_generate4_string(uuid_str, sizeof uuid_str);
 
     // Modern GFE versions don't allow serverinfo to be fetched over HTTPS if the client
     // is not already paired. Since we can't pair without knowing the server version, we
@@ -369,14 +368,12 @@ static bool verifySignature(const char *data, int dataLength, char *signature, i
 int gs_unpair(PSERVER_DATA server) {
   int ret = GS_OK;
   char url[4096];
-  uuid_t uuid;
   char uuid_str[37];
   PHTTP_DATA data = http_create_data();
   if (data == NULL)
     return GS_OUT_OF_MEMORY;
 
-  uuid_generate_random(uuid);
-  uuid_unparse(uuid, uuid_str);
+  gs_uuid_generate4_string(uuid_str, sizeof uuid_str);
   snprintf(url, sizeof(url), "http://%s:47989/unpair?uniqueid=%s&uuid=%s", server->serverInfo.address, unique_id, uuid_str);
   ret = http_request(url, data);
 
@@ -388,7 +385,6 @@ int gs_pair(PSERVER_DATA server, char* pin) {
   int ret = GS_OK;
   char* result = NULL;
   char url[4096];
-  uuid_t uuid;
   char uuid_str[37];
 
   if (server->paired) {
@@ -406,8 +402,7 @@ int gs_pair(PSERVER_DATA server, char* pin) {
   RAND_bytes(salt_data, 16);
   bytes_to_hex(salt_data, salt_hex, 16);
 
-  uuid_generate_random(uuid);
-  uuid_unparse(uuid, uuid_str);
+  gs_uuid_generate4_string(uuid_str, sizeof uuid_str);
   snprintf(url, sizeof(url), "http://%s:47989/pair?uniqueid=%s&uuid=%s&devicename=roth&updateState=1&phrase=getservercert&salt=%s&clientcert=%s", server->serverInfo.address, unique_id, uuid_str, salt_hex, cert_hex);
   PHTTP_DATA data = http_create_data();
   if (data == NULL)
@@ -465,8 +460,7 @@ int gs_pair(PSERVER_DATA server, char* pin) {
   AES_encrypt(challenge_data, challenge_enc, &enc_key);
   bytes_to_hex(challenge_enc, challenge_hex, 16);
 
-  uuid_generate_random(uuid);
-  uuid_unparse(uuid, uuid_str);
+  gs_uuid_generate4_string(uuid_str, sizeof uuid_str);
   snprintf(url, sizeof(url), "http://%s:47989/pair?uniqueid=%s&uuid=%s&devicename=roth&updateState=1&clientchallenge=%s", server->serverInfo.address, unique_id, uuid_str, challenge_hex);
   if ((ret = http_request(url, data)) != GS_OK)
     goto cleanup;
@@ -524,8 +518,7 @@ int gs_pair(PSERVER_DATA server, char* pin) {
   }
   bytes_to_hex(challenge_response_hash_enc, challenge_response_hex, 32);
 
-  uuid_generate_random(uuid);
-  uuid_unparse(uuid, uuid_str);
+  gs_uuid_generate4_string(uuid_str, sizeof uuid_str);
   snprintf(url, sizeof(url), "http://%s:47989/pair?uniqueid=%s&uuid=%s&devicename=roth&updateState=1&serverchallengeresp=%s", server->serverInfo.address, unique_id, uuid_str, challenge_response_hex);
   if ((ret = http_request(url, data)) != GS_OK)
     goto cleanup;
@@ -575,8 +568,7 @@ int gs_pair(PSERVER_DATA server, char* pin) {
   memcpy(client_pairing_secret + 16, signature, 256);
   bytes_to_hex(client_pairing_secret, client_pairing_secret_hex, 16 + 256);
 
-  uuid_generate_random(uuid);
-  uuid_unparse(uuid, uuid_str);
+  gs_uuid_generate4_string(uuid_str, sizeof uuid_str);
   snprintf(url, sizeof(url), "http://%s:47989/pair?uniqueid=%s&uuid=%s&devicename=roth&updateState=1&clientpairingsecret=%s", server->serverInfo.address, unique_id, uuid_str, client_pairing_secret_hex);
   if ((ret = http_request(url, data)) != GS_OK)
     goto cleanup;
@@ -594,8 +586,7 @@ int gs_pair(PSERVER_DATA server, char* pin) {
     goto cleanup;
   }
 
-  uuid_generate_random(uuid);
-  uuid_unparse(uuid, uuid_str);
+  gs_uuid_generate4_string(uuid_str, sizeof uuid_str);
   snprintf(url, sizeof(url), "https://%s:47984/pair?uniqueid=%s&uuid=%s&devicename=roth&updateState=1&phrase=pairchallenge", server->serverInfo.address, unique_id, uuid_str);
   if ((ret = http_request(url, data)) != GS_OK)
     goto cleanup;
@@ -630,14 +621,12 @@ int gs_pair(PSERVER_DATA server, char* pin) {
 int gs_applist(PSERVER_DATA server, PAPP_LIST *list) {
   int ret = GS_OK;
   char url[4096];
-  uuid_t uuid;
   char uuid_str[37];
   PHTTP_DATA data = http_create_data();
   if (data == NULL)
     return GS_OUT_OF_MEMORY;
 
-  uuid_generate_random(uuid);
-  uuid_unparse(uuid, uuid_str);
+  gs_uuid_generate4_string(uuid_str, sizeof uuid_str);
   snprintf(url, sizeof(url), "https://%s:47984/applist?uniqueid=%s&uuid=%s", server->serverInfo.address, unique_id, uuid_str);
   if (http_request(url, data) != GS_OK)
     ret = GS_IO_ERROR;
@@ -652,7 +641,6 @@ int gs_applist(PSERVER_DATA server, PAPP_LIST *list) {
 
 int gs_start_app(PSERVER_DATA server, STREAM_CONFIGURATION *config, int appId, bool sops, bool localaudio, int gamepad_mask) {
   int ret = GS_OK;
-  uuid_t uuid;
   char* result = NULL;
   char uuid_str[37];
 
@@ -684,8 +672,7 @@ int gs_start_app(PSERVER_DATA server, STREAM_CONFIGURATION *config, int appId, b
   if (data == NULL)
     return GS_OUT_OF_MEMORY;
 
-  uuid_generate_random(uuid);
-  uuid_unparse(uuid, uuid_str);
+  gs_uuid_generate4_string(uuid_str, sizeof uuid_str);
   if (server->currentGame == 0) {
     int channelCounnt = config->audioConfiguration == AUDIO_CONFIGURATION_STEREO ? CHANNEL_COUNT_STEREO : CHANNEL_COUNT_51_SURROUND;
     int mask = config->audioConfiguration == AUDIO_CONFIGURATION_STEREO ? CHANNEL_MASK_STEREO : CHANNEL_MASK_51_SURROUND;
@@ -719,15 +706,13 @@ int gs_start_app(PSERVER_DATA server, STREAM_CONFIGURATION *config, int appId, b
 int gs_quit_app(PSERVER_DATA server) {
   int ret = GS_OK;
   char url[4096];
-  uuid_t uuid;
   char uuid_str[37];
   char* result = NULL;
   PHTTP_DATA data = http_create_data();
   if (data == NULL)
     return GS_OUT_OF_MEMORY;
 
-  uuid_generate_random(uuid);
-  uuid_unparse(uuid, uuid_str);
+  gs_uuid_generate4_string(uuid_str, sizeof uuid_str);
   snprintf(url, sizeof(url), "https://%s:47984/cancel?uniqueid=%s&uuid=%s", server->serverInfo.address, unique_id, uuid_str);
   if ((ret = http_request(url, data)) != GS_OK)
     goto cleanup;

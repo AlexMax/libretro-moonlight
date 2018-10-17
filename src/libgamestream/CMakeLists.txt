@@ -3,6 +3,7 @@ find_package(EXPAT REQUIRED)
 find_package(OpenSSL REQUIRED)
 
 set(GAMESTREAM_SOURCES
+    client.c
     uuid.c)
 
     # client.c
