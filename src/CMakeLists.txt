@@ -1,3 +1,5 @@
+add_subdirectory(libgamestream)
+
 set(MOONLIGHT_SOURCES
     libretro.c)
 

@@ -43,4 +43,5 @@ set(MOONLIGHT_SOURCES
     "${MOONLIGHT_SRCDIR}/VideoDepacketizer.c"
     "${MOONLIGHT_SRCDIR}/VideoStream.c")
 add_library(moonlight-common STATIC ${MOONLIGHT_SOURCES})
+target_include_directories(moonlight-common PUBLIC "${MOONLIGHT_SRCDIR}")
 target_link_libraries(moonlight-common enet reedsolomon OpenSSL::Crypto)
