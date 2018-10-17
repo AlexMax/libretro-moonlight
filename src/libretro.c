@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "libretro.h"
 
 RETRO_API void retro_set_environment(retro_environment_t cb) {
