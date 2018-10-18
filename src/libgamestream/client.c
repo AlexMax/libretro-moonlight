@@ -40,6 +40,10 @@
 #include <openssl/pem.h>
 #include <openssl/err.h>
 
+#ifdef _WIN32
+#define mkdir(pathname, mode) mkdir(pathname)
+#endif
+
 #define UNIQUE_FILE_NAME "uniqueid.dat"
 #define P12_FILE_NAME "client.p12"
 
@@ -664,7 +668,7 @@ int gs_start_app(PSERVER_DATA server, STREAM_CONFIGURATION *config, int appId, b
 
   srand(time(NULL));
   char url[4096];
-  u_int32_t rikeyid = 0;
+  uint32_t rikeyid = 0;
   char rikey_hex[33];
   bytes_to_hex(config->remoteInputAesKey, rikey_hex, 16);
 
