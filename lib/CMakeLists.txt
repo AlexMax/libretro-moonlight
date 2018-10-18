@@ -1,3 +1,12 @@
+# h264bitstream
+set(H264_SRCIR "${CMAKE_CURRENT_SOURCE_DIR}/h264bitstream")
+set(H264_SOURCES
+    "${H264_SRCIR}/h264_nal.c"
+    "${H264_SRCIR}/h264_sei.c"
+    "${H264_SRCIR}/h264_stream.c")
+add_library(h264bitstream STATIC ${H264_SOURCES})
+target_include_directories(h264bitstream PUBLIC "${H264_SRCIR}")
+
 # ENet Static Library
 find_package(OpenSSL REQUIRED)
 set(OPENSSL_USE_STATIC_LIBS TRUE)
