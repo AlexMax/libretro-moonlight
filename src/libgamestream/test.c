@@ -17,19 +17,28 @@
  * along with Moonlight; if not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "uuid.h"
+#include "client.h"
+#include "errors.h"
 
 #include <stdio.h>
+#include <stdlib.h> // rand
 
 int main() {
-    char uuid[37];
-
-    if (!gs_uuid_generate4_string(&uuid[0], sizeof(uuid))) {
-        printf("error!\n");
+    SERVER_DATA server;
+    int res = gs_init(&server, "127.0.0.1", ".", 0, false);
+    if (res != GS_OK) {
+        printf("gs_init: %d, %s\n", res, gs_error);
         return 1;
     }
 
-    printf("%s", uuid);
+    char pin[5];
+    snprintf(pin, sizeof pin, "%d%d%d%d", rand() % 10, rand() % 10, rand() % 10, rand() % 10);
+
+    printf("PIN: %s\n", pin);
+
+    res = gs_pair(&server, &pin[0]);
+
+    printf("gs_pair: %d, %s\n", res, gs_error);
 
     return 0;
 }

@@ -739,6 +739,21 @@ int gs_quit_app(PSERVER_DATA server) {
   return ret;
 }
 
+/**
+ * @brief Initialize connection to gamestream server
+ * 
+ * This must be called in order to initialize the server struct.  It will send
+ * a test request to the gamestream endpoint that will purposefully fail, and
+ * evidence of this error will show up in gs_error.
+ * 
+ * @param server Uninitialized server struct.
+ * @param address Address of gamestream server.
+ * @param keyDirectory 
+ * @param log_level 
+ * @param unsupported Force connection to supposedly unsupported versions of
+ *                    GeForce Experience.
+ * @return int GS_OK if successful.
+ */
 int gs_init(PSERVER_DATA server, char *address, const char *keyDirectory, int log_level, bool unsupported) {
   mkdirtree(keyDirectory);
   if (load_unique_id(keyDirectory) != GS_OK)

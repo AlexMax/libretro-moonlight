@@ -54,3 +54,6 @@ set(MOONLIGHT_SOURCES
 add_library(moonlight-common STATIC ${MOONLIGHT_SOURCES})
 target_include_directories(moonlight-common PUBLIC "${MOONLIGHT_SRCDIR}")
 target_link_libraries(moonlight-common enet reedsolomon OpenSSL::Crypto)
+if(WIN32)
+    target_link_libraries(moonlight-common ws2_32 winmm)
+endif()
