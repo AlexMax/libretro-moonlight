@@ -109,7 +109,36 @@ DECODER_RENDERER_CALLBACKS decoder_callbacks_libretro = {
     decoder_stop, // stop
     decoder_cleanup, // cleanup
     decoder_submit_decode_unit, // submitDecodeUnit
-    CAPABILITY_SLICES_PER_FRAME(4) // capabilities
+    CAPABILITY_SLICES_PER_FRAME(4) | CAPABILITY_DIRECT_SUBMIT // capabilities
+};
+
+int audio_init(int audioConfiguration, const POPUS_MULTISTREAM_CONFIGURATION opusConfig, void* context, int arFlags) {
+    printf("%s\n", __FUNCTION__);
+}
+
+void audio_start(void) {
+    printf("%s\n", __FUNCTION__);
+}
+
+void audio_stop(void) {
+    printf("%s\n", __FUNCTION__);
+}
+
+void audio_cleanup(void) {
+    printf("%s\n", __FUNCTION__);
+}
+
+void audio_decode_and_play_sample(char* sampleData, int sampleLength) {
+    printf("%s\n", __FUNCTION__);
+}
+
+AUDIO_RENDERER_CALLBACKS audio_callbacks_libretro = {
+    audio_init, // init
+    audio_start, // start
+    audio_stop, // stop
+    audio_cleanup, // cleanup
+    audio_decode_and_play_sample, // decodeAndPlaySample
+    CAPABILITY_DIRECT_SUBMIT, // capabilities
 };
 
 int main() {
@@ -169,6 +198,7 @@ int main() {
 
     AUDIO_RENDERER_CALLBACKS audio_callbacks;
     LiInitializeAudioCallbacks(&audio_callbacks);
+    memcpy(&audio_callbacks, &audio_callbacks_libretro, sizeof(decoder_callbacks));
 
     // Start the gamestream connection
     LiStartConnection(&server.serverInfo, &config_stream, &connection_callbacks,
