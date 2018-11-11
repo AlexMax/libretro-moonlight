@@ -180,6 +180,8 @@ int main() {
     config_stream.width = 1920;
     config_stream.height = 1080;
     config_stream.fps = 60;
+    config_stream.bitrate = 5000;
+    config_stream.packetSize = 1024;
 
     // AppID 1088017781 is Steam on my PC - start it
     res = gs_start_app(&server, &config_stream, 1088017781, config_sops, config_localaudio, 1);
