@@ -1,5 +1,5 @@
 /*
- * This file is part of Moonlight Embedded.
+ * This file is part of libretro-moonlight.
  *
  * Copyright (C) 2018 Alex Mayfield
  *
@@ -20,8 +20,97 @@
 #include "client.h"
 #include "errors.h"
 
+#include "video/ffmpeg.h"
+
 #include <stdio.h>
 #include <stdlib.h> // rand
+
+void stage_starting(int stage) {
+    printf("%s, %d\n", __FUNCTION__, stage);
+}
+
+void stage_complete(int stage) {
+    printf("%s %d\n", __FUNCTION__, stage);
+}
+
+void stage_failed(int stage, long errorCode) {
+    printf("%s %d %d\n", __FUNCTION__, stage, errorCode);
+}
+
+void connection_started(void) {
+    printf("%s\n", __FUNCTION__);
+}
+
+void connection_terminated(long errorCode) {
+    printf("%s %d\n", __FUNCTION__, errorCode);
+}
+
+void display_message(const char* message) {
+    printf("%s %s\n", __FUNCTION__, message);
+}
+
+void display_transient_message(const char* message) {
+    printf("%s %s\n", __FUNCTION__, message);
+}
+
+void log_message(const char* format, ...) {
+    char buffer[8192];
+    va_list args;
+    va_start(args, format);
+    vsnprintf(buffer, sizeof(buffer), format, args);
+    va_end(args);
+
+    printf("%s %s\n", __FUNCTION__, buffer);
+}
+
+CONNECTION_LISTENER_CALLBACKS connection_callbacks_libretro = {
+    stage_starting, // stageStarting
+    stage_complete, // stageComplete
+    stage_failed, // stageFailed
+    connection_started, // connectionStarted
+    connection_terminated, // connectionTerminated
+    display_message, // displayMessage
+    display_transient_message, // displayTransientMessage
+    log_message // logMessage
+};
+
+int decoder_setup(int videoFormat, int width, int height, int redrawRate, void* context, int drFlags) {
+    printf("%s\n", __FUNCTION__);
+
+    int avc_flags = SLICE_THREADING;
+    if (ffmpeg_init(videoFormat, width, height, avc_flags, 2, 1) != 0) {
+        printf("ffmpeg_init failure\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+void decoder_start(void) {
+    printf("%s\n", __FUNCTION__);
+}
+
+void decoder_stop(void) {
+    printf("%s\n", __FUNCTION__);
+}
+
+void decoder_cleanup(void) {
+    printf("%s\n", __FUNCTION__);
+    ffmpeg_destroy();
+}
+
+int decoder_submit_decode_unit(PDECODE_UNIT decodeUnit) {
+    printf("%s\n", __FUNCTION__);
+}
+
+DECODER_RENDERER_CALLBACKS decoder_callbacks_libretro = {
+    decoder_setup, // setup
+    decoder_start, // start
+    decoder_stop, // stop
+    decoder_cleanup, // cleanup
+    decoder_submit_decode_unit, // submitDecodeUnit
+    CAPABILITY_SLICES_PER_FRAME(4) // capabilities
+};
 
 int main() {
     bool config_sops;
@@ -72,9 +161,11 @@ int main() {
 
     CONNECTION_LISTENER_CALLBACKS connection_callbacks;
     LiInitializeConnectionCallbacks(&connection_callbacks);
+    memcpy(&connection_callbacks, &connection_callbacks_libretro, sizeof(connection_callbacks));
 
     DECODER_RENDERER_CALLBACKS decoder_callbacks;
     LiInitializeVideoCallbacks(&decoder_callbacks);
+    memcpy(&decoder_callbacks, &decoder_callbacks_libretro, sizeof(decoder_callbacks));
 
     AUDIO_RENDERER_CALLBACKS audio_callbacks;
     LiInitializeAudioCallbacks(&audio_callbacks);
@@ -82,6 +173,10 @@ int main() {
     // Start the gamestream connection
     LiStartConnection(&server.serverInfo, &config_stream, &connection_callbacks,
         &decoder_callbacks, &audio_callbacks, NULL, 0, NULL, 0);
+
+    while(true) {
+        _sleep(1);
+    }
 
     return 0;
 }

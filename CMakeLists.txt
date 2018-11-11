@@ -7,5 +7,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/")
 
 project(libretro-moonlight C)
 
+add_definitions(-Wall -Wextra)
+
 add_subdirectory(lib)
 add_subdirectory(src)
