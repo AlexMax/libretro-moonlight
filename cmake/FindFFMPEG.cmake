@@ -20,7 +20,6 @@
 # FFMPEG_FOUND - system has FFmpeg
 # FFMPEG_INCLUDE_DIRS - FFmpeg include directory
 # FFMPEG_LIBRARIES - FFmpeg libraries
-# FFMPEG_DEFINITIONS - pre-processor definitions
 # FFMPEG_LDFLAGS - linker flags
 #
 # and the following imported targets::
@@ -29,48 +28,15 @@
 # --------
 #
 
-# required ffmpeg library versions
-set(REQUIRED_FFMPEG_VERSION 4.0)
-set(_avcodec_ver ">=58.18.100")
-set(_avfilter_ver ">=7.16.100")
-set(_avformat_ver ">=58.12.100")
-set(_avutil_ver ">=56.14.100")
-set(_swscale_ver ">=5.1.100")
-set(_swresample_ver ">=3.1.100")
-set(_postproc_ver ">=55.1.100")
-
-
-# Allows building with external ffmpeg not found in system paths,
-# without library version checks
-if(WITH_FFMPEG)
-  set(FFMPEG_PATH ${WITH_FFMPEG})
-  message(STATUS "Warning: FFmpeg version checking disabled")
-  set(REQUIRED_FFMPEG_VERSION undef)
-  unset(_avcodec_ver)
-  unset(_avfilter_ver)
-  unset(_avformat_ver)
-  unset(_avutil_ver)
-  unset(_swscale_ver)
-  unset(_swresample_ver)
-  unset(_postproc_ver)
-endif()
-
 # external FFMPEG
 if(NOT ENABLE_INTERNAL_FFMPEG OR KODI_DEPENDSBUILD)
   if(FFMPEG_PATH)
     list(APPEND CMAKE_PREFIX_PATH ${FFMPEG_PATH})
   endif()
 
-  set(FFMPEG_PKGS libavcodec${_avcodec_ver}
-                  libavfilter${_avfilter_ver}
-                  libavformat${_avformat_ver}
-                  libavutil${_avutil_ver}
-                  libswscale${_swscale_ver}
-                  libswresample${_swresample_ver}
-                  libpostproc${_postproc_ver})
-
+  include(FindPkgConfig)
   if(PKG_CONFIG_FOUND)
-    pkg_check_modules(PC_FFMPEG ${FFMPEG_PKGS} QUIET)
+    pkg_check_modules(PC_FFMPEG libavcodec libavfilter libavformat libavutil libswscale libswresample libpostproc)
     string(REGEX REPLACE "framework;" "framework " PC_FFMPEG_LDFLAGS "${PC_FFMPEG_LDFLAGS}")
   endif()
 
@@ -140,12 +106,8 @@ if(NOT ENABLE_INTERNAL_FFMPEG OR KODI_DEPENDSBUILD)
       AND PC_FFMPEG_libswresample_VERSION
       AND PC_FFMPEG_libpostproc_VERSION)
      OR WIN32)
-    set(FFMPEG_VERSION ${REQUIRED_FFMPEG_VERSION})
-
-
     include(FindPackageHandleStandardArgs)
     find_package_handle_standard_args(FFMPEG
-                                      VERSION_VAR FFMPEG_VERSION
                                       REQUIRED_VARS FFMPEG_INCLUDE_DIRS
                                                     FFMPEG_LIBAVCODEC
                                                     FFMPEG_LIBAVFILTER
@@ -154,17 +116,14 @@ if(NOT ENABLE_INTERNAL_FFMPEG OR KODI_DEPENDSBUILD)
                                                     FFMPEG_LIBSWSCALE
                                                     FFMPEG_LIBSWRESAMPLE
                                                     FFMPEG_LIBPOSTPROC
-                                                    FFMPEG_VERSION
-                                      FAIL_MESSAGE "FFmpeg ${REQUIRED_FFMPEG_VERSION} not found, please consider using -DENABLE_INTERNAL_FFMPEG=ON")
+                                      FAIL_MESSAGE "FFmpeg not found, please consider using -DENABLE_INTERNAL_FFMPEG=ON")
 
   else()
-    message(STATUS "FFmpeg ${REQUIRED_FFMPEG_VERSION} not found, falling back to internal build")
+    message(STATUS "FFmpeg not found, falling back to internal build")
     unset(FFMPEG_INCLUDE_DIRS)
     unset(FFMPEG_INCLUDE_DIRS CACHE)
     unset(FFMPEG_LIBRARIES)
     unset(FFMPEG_LIBRARIES CACHE)
-    unset(FFMPEG_DEFINITIONS)
-    unset(FFMPEG_DEFINITIONS CACHE)
   endif()
 
   if(FFMPEG_FOUND)
@@ -184,7 +143,6 @@ if(NOT ENABLE_INTERNAL_FFMPEG OR KODI_DEPENDSBUILD)
                          ${FFMPEG_LIBAVFORMAT} ${FFMPEG_LIBAVUTIL}
                          ${FFMPEG_LIBSWSCALE} ${FFMPEG_LIBSWRESAMPLE}
                          ${FFMPEG_LIBPOSTPROC} ${FFMPEG_LDFLAGS})
-    list(APPEND FFMPEG_DEFINITIONS -DFFMPEG_VER_SHA=\"${FFMPEG_VERSION}\")
 
     if(NOT TARGET ffmpeg)
     # [AM] Doesn't work (LIBRARIES isn't filled out)
@@ -193,10 +151,9 @@ if(NOT ENABLE_INTERNAL_FFMPEG OR KODI_DEPENDSBUILD)
                                    FOLDER "External Projects"
                                    IMPORTED_LOCATION "${FFMPEG_LIBRARIES}"
                                    INTERFACE_INCLUDE_DIRECTORIES "${FFMPEG_INCLUDE_DIRS}"
-                                   INTERFACE_LINK_LIBRARIES "${FFMPEG_LDFLAGS}"
-                                   INTERFACE_COMPILE_DEFINITIONS "${FFMPEG_DEFINITIONS}")
+                                   INTERFACE_LINK_LIBRARIES "${FFMPEG_LDFLAGS}")
     endif()
   endif()
 endif()
 
-mark_as_advanced(FFMPEG_INCLUDE_DIRS FFMPEG_LIBRARIES FFMPEG_LDFLAGS FFMPEG_DEFINITIONS FFMPEG_FOUND)
+mark_as_advanced(FFMPEG_INCLUDE_DIRS FFMPEG_LIBRARIES FFMPEG_LDFLAGS FFMPEG_FOUND)

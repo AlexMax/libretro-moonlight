@@ -11,25 +11,17 @@ target_include_directories(h264bitstream PUBLIC "${H264_SRCIR}")
 find_package(OpenSSL REQUIRED)
 set(OPENSSL_USE_STATIC_LIBS TRUE)
 
-set(ENET_SRCIR "${CMAKE_CURRENT_SOURCE_DIR}/moonlight-common-c/enet")
-set(ENET_SOURCES
-    "${ENET_SRCIR}/callbacks.c"
-    "${ENET_SRCIR}/compress.c"
-    "${ENET_SRCIR}/host.c"
-    "${ENET_SRCIR}/list.c"
-    "${ENET_SRCIR}/packet.c"
-    "${ENET_SRCIR}/peer.c"
-    "${ENET_SRCIR}/protocol.c"
-    "${ENET_SRCIR}/unix.c"
-    "${ENET_SRCIR}/vita.c"
-    "${ENET_SRCIR}/win32.c")
-add_library(enet STATIC ${ENET_SOURCES})
-target_include_directories(enet PUBLIC "${ENET_SRCIR}/include")
+set(ENET_SRCDIR "${CMAKE_CURRENT_SOURCE_DIR}/moonlight-common-c/enet")
+add_subdirectory("${ENET_SRCDIR}")
+target_include_directories(enet PUBLIC "${ENET_SRCDIR}/include")
 
 # Reedsolomon
 set(RS_SRCDIR "${CMAKE_CURRENT_SOURCE_DIR}/moonlight-common-c/reedsolomon")
 add_library(reedsolomon STATIC "${RS_SRCDIR}/rs.c")
 target_include_directories(reedsolomon PUBLIC "${RS_SRCDIR}")
+
+# Threading library
+find_package(Threads)
 
 # Moonlight
 set(MOONLIGHT_SRCDIR "${CMAKE_CURRENT_SOURCE_DIR}/moonlight-common-c/src")
@@ -53,7 +45,7 @@ set(MOONLIGHT_SOURCES
     "${MOONLIGHT_SRCDIR}/VideoStream.c")
 add_library(moonlight-common STATIC ${MOONLIGHT_SOURCES})
 target_include_directories(moonlight-common PUBLIC "${MOONLIGHT_SRCDIR}")
-target_link_libraries(moonlight-common enet reedsolomon OpenSSL::Crypto)
+target_link_libraries(moonlight-common enet reedsolomon OpenSSL::Crypto Threads::Threads)
 if(WIN32)
     target_link_libraries(moonlight-common ws2_32 winmm)
 endif()

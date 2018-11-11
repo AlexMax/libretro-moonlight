@@ -146,7 +146,7 @@ int main() {
     bool config_localaudio;
 
     SERVER_DATA server;
-    int res = gs_init(&server, "127.0.0.1", ".", 2, false);
+    int res = gs_init(&server, "192.168.1.184", ".", 2, false);
     if (res != GS_OK) {
         printf("gs_init: %d, %s\n", res, gs_error);
         return 1;
@@ -207,7 +207,11 @@ int main() {
         &decoder_callbacks, &audio_callbacks, NULL, 0, NULL, 0);
 
     while(true) {
+#ifdef _WIN32
         _sleep(1);
+#else
+        sleep(1);
+#endif
     }
 
     return 0;

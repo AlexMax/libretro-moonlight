@@ -13,4 +13,4 @@ set(GAMESTREAM_SOURCES
 
 add_library(gamestream STATIC ${GAMESTREAM_SOURCES})
 target_include_directories(gamestream PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries(gamestream moonlight-common h264bitstream libcurl EXPAT OpenSSL::SSL)
+target_link_libraries(gamestream moonlight-common h264bitstream CURL::libcurl EXPAT::EXPAT OpenSSL::SSL)
