@@ -23,6 +23,7 @@
 
 #include <Limelight.h>
 #include <libavcodec/avcodec.h>
+#include <libavformat/avformat.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -46,13 +47,14 @@ enum decoders ffmpeg_decoder;
 int ffmpeg_init(int videoFormat, int width, int height, int perf_lvl, int buffer_count, int thread_count) {
   // Initialize the avcodec library and register codecs
   av_log_set_level(AV_LOG_QUIET);
+  av_register_all(); // Needed by ffmpeg < 4
 
   av_init_packet(&pkt);
 
   ffmpeg_decoder = perf_lvl & VAAPI_ACCELERATION ? VAAPI : SOFTWARE;
   switch (videoFormat) {
     case VIDEO_FORMAT_H264:
-      decoder = avcodec_find_decoder_by_name("h264");
+      decoder = avcodec_find_decoder_by_name("h264_mmal");
       break;
     case VIDEO_FORMAT_H265:
       decoder = avcodec_find_decoder_by_name("hevc");
